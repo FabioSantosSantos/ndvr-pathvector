@@ -799,10 +799,12 @@ void Ndvr::EncodeDvInfo(std::string& out) {
     auto* entry = dvinfo_proto.add_entry();
     entry->set_prefix(it->first);
     entry->set_seq(it->second.GetSeqNum());
-    entry->set_cost(it->second.GetBestCost());
+    //entry->set_cost(it->second.GetBestCost());
     entry->set_originator(it->second.GetOriginator());
-    entry->set_bestnexthop(it->second.GetLearnedFrom());
-    entry->set_sec_cost(it->second.GetSecondBestCost());
+    //entry->set_bestnexthop(it->second.GetLearnedFrom());
+    //entry->set_sec_cost(it->second.GetSecondBestCost());
+
+    
   }
   dvinfo_proto.AppendToString(&out);
 }
@@ -810,14 +812,33 @@ void Ndvr::EncodeDvInfo(std::string& out) {
 void
 Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) {
   NS_LOG_INFO("Process DvInfo from neighbor=" << neighbor.GetName());
+  
   bool has_changed = false;
+  std::string routerPrefix_Uri = m_routerPrefix.toUri();
 
   for (auto entry : otherRT) {
     std::string neigh_prefix = entry.first;
     uint64_t neigh_seq = entry.second.GetSeqNum();
-    uint32_t neigh_cost = entry.second.GetBestCost();
-    uint32_t neigh_sec_cost = entry.second.GetSecondBestCost();
-    NS_LOG_INFO("===>> prefix=" << neigh_prefix << " seqNum=" << neigh_seq << " recvCost=" << neigh_cost << " recvSecCost=" << neigh_sec_cost << " learnedFrom=" << entry.second.GetLearnedFrom());
+    uint32_t neigh_cost = entry.second.GetNextHops2().GetCost();
+    //uint32_t neigh_sec_cost = entry.second.GetSecondBestCost();
+    NS_LOG_INFO("===>> prefix=" << neigh_prefix << " seqNum=" << neigh_seq << " recvCost=" << neigh_cost << " learnedFrom=" << entry.second.GetLearnedFrom());
+
+    
+    for (std::string nextHop: entry.second.GetNextHops2().GetRouterIds()){
+      if (nextHop.compare(routerPrefix_Uri) == 0){
+        NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
+        //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
+        NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
+        continue;
+      }
+
+      if (!isValidCost(neigh_cost)){
+        continue;
+       }
+
+       entry.second.GetNextHops2().AddRouterId(routerPrefix_Uri);
+
+    }
 
     /* Sanity checks: 1) ignore invalid seqNum; 2) ignore invalid Cost */
     if (neigh_seq <= 0 || !isValidCost(neigh_cost))
@@ -839,23 +860,23 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
     }
 
     /* Direct routes with higher sequence number means we should update ours */
-    if (localRE->isDirectRoute()) {
-      if (localRE->GetOriginator() == m_routerPrefix && neigh_seq > localRE->GetSeqNum()) {
-        localRE->IncSeqNum(2);
-        has_changed = true;
-      }
-      continue;
-    }
+    // if (localRE->isDirectRoute()) {
+    //   if (localRE->GetOriginator() == m_routerPrefix && neigh_seq > localRE->GetSeqNum()) {
+    //     localRE->IncSeqNum(2);
+    //     has_changed = true;
+    //   }
+    //   continue;
+    // }
 
     /* insert new next hop unless it was learned only from us */
     if (!localRE->isNextHop(neighbor.GetFaceId())) {
       if (isInfinityCost(neigh_cost))
         continue;
-      if (entry.second.GetLearnedFrom() == m_routerPrefix) {
-        if (isInfinityCost(neigh_sec_cost))
-           continue;
-        neigh_cost = neigh_sec_cost;
-      }
+      // if (entry.second.GetLearnedFrom() == m_routerPrefix) {
+      //   if (isInfinityCost(neigh_sec_cost))
+      //      continue;
+      //   neigh_cost = neigh_sec_cost;
+      // }
 
       NS_LOG_INFO("======>> New neighbor! Just insert it " << neigh_prefix << " via " << neighbor.GetFaceId());
 
@@ -888,15 +909,15 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
       continue;
     }
 
-    if (entry.second.GetLearnedFrom() == m_routerPrefix && !isInfinityCost(neigh_sec_cost))
-      neigh_cost = neigh_sec_cost;
+    // if (entry.second.GetLearnedFrom() == m_routerPrefix && !isInfinityCost(neigh_sec_cost))
+    //   neigh_cost = neigh_sec_cost;
 
     /* compare the Received and Local SeqNum (in Routing Entry)*/
     neigh_cost = CalculateCostToNeigh(neighbor, neigh_cost);
     if (neigh_seq > localRE->GetSeqNum()) {
       /* check if this update leads to the route being learned from ourself,
        * if that is so it means we should remove this neighbor  */
-      if (entry.second.GetLearnedFrom() == m_routerPrefix && isInfinityCost(neigh_sec_cost)) {
+      if (entry.second.GetLearnedFrom() == m_routerPrefix) { //&& isInfinityCost(neigh_sec_cost)) {
         NS_LOG_INFO("======>> New SeqNum and learned only from ourself! Remove nextHop for name prefix " << neigh_prefix << " nextHop=" << neighbor.GetFaceId() << " local_seqNum=" << localRE->GetSeqNum() << " neigh_seqNum" << neigh_seq);
 
         localRE->SetSeqNum(neigh_seq);
