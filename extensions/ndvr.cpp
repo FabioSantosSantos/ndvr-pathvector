@@ -802,7 +802,7 @@ void Ndvr::EncodeDvInfo(std::string& out) {
     auto* entry = dvinfo_proto.add_entry();
     entry->set_prefix(it->first);
     entry->set_seq(it->second.GetSeqNum());
-    entry->set_cost(it->second.GetCost());
+    entry->set_cost(it->second.GetBestCost());
     entry->set_originator(it->second.GetOriginator());
     //entry->set_bestnexthop(it->second.GetLearnedFrom());
     //entry->set_sec_cost(it->second.GetSecondBestCost());
@@ -833,9 +833,10 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
   for (auto entry : otherRT) {
     std::string neigh_prefix = entry.first;
     uint64_t neigh_seq = entry.second.GetSeqNum();
-    //uint32_t neigh_cost = entry.second.GetNextHops2().GetCost();
-    uint32_t neigh_cost = entry.second.GetCost();
-    //uint32_t neigh_sec_cost = entry.second.GetSecondBestCost();
+    uint32_t neigh_cost = entry.second.GetBestCost();
+    
+    NS_LOG_INFO("DEBUG DE SOCORRO Custo da entrada em processDvInfoFromNeighbor " << neigh_cost);
+    
     NS_LOG_INFO("===>> prefix=" << neigh_prefix << " seqNum=" << neigh_seq << " recvCost=" << neigh_cost << " learnedFrom=" << entry.second.GetLearnedFrom());
 
     
