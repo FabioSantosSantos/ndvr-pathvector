@@ -68,7 +68,6 @@ inline RoutingTable DecodeDvInfo(const proto::DvInfo& dvinfo_proto) {
      //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
 
     NextHop nextHop = NextHop(ids);
-    //RoutingEntry re = RoutingEntry(prefix, originator, seq, cost, bestnexthop, sec_cost);
     RoutingEntry re = RoutingEntry(prefix, seq, originator, cost, nextHop);
 
     dvinfo.emplace(prefix, re);

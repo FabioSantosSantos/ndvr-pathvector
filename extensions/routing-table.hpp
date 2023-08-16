@@ -4,7 +4,6 @@
       #include <map>
       #include <ndn-cxx/mgmt/nfd/controller.hpp>
 
-
       namespace ndn {
       namespace ndvr {
 
@@ -57,6 +56,7 @@
           , m_originator(originator)
           , m_nextHops2(nextHops)
           , m_cost(cost)
+          , m_bestCost(cost)
         {
         }
 
