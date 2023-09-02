@@ -847,6 +847,7 @@ void Ndvr::EncodeDvInfo(std::string& out) {
 
   }
   dvinfo_proto.AppendToString(&out);
+  NS_LOG_INFO("String DVInfo" << out);
 }
 
 void
@@ -859,9 +860,8 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
   for (auto entry : otherRT) {
     std::string neigh_prefix = entry.first;
     uint64_t neigh_seq = entry.second.GetSeqNum();
-    uint32_t neigh_cost = entry.second.GetBestCost();
-    
-    NS_LOG_INFO("DEBUG DE SOCORRO Custo da entrada em processDvInfoFromNeighbor " << neigh_cost);
+    uint32_t neigh_cost = entry.second.GetNextHops2().GetRouterIds().size();
+    //NS_LOG_INFO("DEBUG DE SOCORRO Custo da entrada em processDvInfoFromNeighbor " << neigh_cost);
     
     NS_LOG_INFO("===>> prefix=" << neigh_prefix << " seqNum=" << neigh_seq << " recvCost=" << neigh_cost << " learnedFrom=" << entry.second.GetLearnedFrom());
 
@@ -882,10 +882,11 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
 
     }*/
       std::vector<std::string> nextHops = entry.second.GetNextHops2().GetRouterIds();
-      NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
-      //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
-      NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
+
       if (std::find(nextHops.begin(), nextHops.end(), routerPrefix_Uri) != nextHops.end()){
+          NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
+          //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
+          NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
 
           continue;
       }
@@ -1044,7 +1045,7 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
 
 uint32_t
 Ndvr::CalculateCostToNeigh(NeighborEntry& neighbor, uint32_t cost) {
-  return cost+1;
+  return cost;
 }
 
 bool
