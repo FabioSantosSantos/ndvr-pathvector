@@ -11,7 +11,7 @@ inline void EncodeDvInfo(RoutingTable& v, proto::DvInfo* dvinfo_proto) {
     auto* entry = dvinfo_proto->add_entry();
     entry->set_prefix(it->first);
     entry->set_seq(it->second.GetSeqNum());
-    entry->set_cost(it->second.GetBestCost());
+    //entry->set_cost(it->second.GetBestCost());
     entry->set_originator(it->second.GetOriginator());
     //entry->set_bestnexthop(it->second.GetLearnedFrom());
     //entry->set_sec_cost(it->second.GetSecondBestCost());
@@ -55,7 +55,7 @@ inline RoutingTable DecodeDvInfo(const proto::DvInfo& dvinfo_proto) {
     auto prefix = entry.prefix();
     auto seq = entry.seq();
     auto originator = entry.originator();
-    auto cost = entry.cost();
+    //auto cost = entry.cost();
     //auto bestnexthop = entry.bestnexthop();
     //auto sec_cost = entry.sec_cost();
     std::vector<std::string> ids;
@@ -68,11 +68,12 @@ inline RoutingTable DecodeDvInfo(const proto::DvInfo& dvinfo_proto) {
      //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
 
     NextHop nextHop = NextHop(ids);
-    RoutingEntry re = RoutingEntry(prefix, seq, originator, cost, nextHop);
+    RoutingEntry re = RoutingEntry(prefix, seq, originator, nextHop);
 
     dvinfo.emplace(prefix, re);
   }
-  return dvinfo;
+  return dvinfo;a nfdc fib
+  
 }
 
 inline RoutingTable DecodeDvInfo(const void* buf, size_t buf_size) {

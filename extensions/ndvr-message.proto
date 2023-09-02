@@ -18,7 +18,7 @@ message DvInfo {
     uint64 seq = 2;
     string originator = 3;
     NextHop next_hops = 4;
-    uint32 cost = 5;
+    //uint32 cost = 5;
   }
 
   repeated Entry entry = 1;

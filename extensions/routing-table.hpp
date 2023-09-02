@@ -50,13 +50,13 @@
         {
         }
 
-        RoutingEntry(std::string name, uint64_t seqNum, std::string originator, uint32_t cost, NextHop nextHops)
+        RoutingEntry(std::string name, uint64_t seqNum, std::string originator, NextHop nextHops)
           : m_name(name)
           , m_seqNum(seqNum)
           , m_originator(originator)
           , m_nextHops2(nextHops)
-          , m_cost(cost)
-          , m_bestCost(cost)
+          //, m_cost(cost)
+          //, m_bestCost(cost)
         {
         }
 

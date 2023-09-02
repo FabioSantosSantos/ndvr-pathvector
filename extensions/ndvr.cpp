@@ -800,7 +800,7 @@ void Ndvr::UpdateRoutingTableDigest() {
     auto* e2 = to_calc_digest.add_entry();
     e2->set_prefix(it->first);
     e2->set_seq(it->second.GetSeqNum());
-    e2->set_cost(0);
+    //e2->set_cost(0);
   }
   to_calc_digest.AppendToString(&str_digest);
   boost::uuids::detail::sha1 sha1;
@@ -828,7 +828,7 @@ void Ndvr::EncodeDvInfo(std::string& out) {
     auto* entry = dvinfo_proto.add_entry();
     entry->set_prefix(it->first);
     entry->set_seq(it->second.GetSeqNum());
-    entry->set_cost(it->second.GetBestCost());
+    //entry->set_cost(it->second.GetBestCost());
     entry->set_originator(it->second.GetOriginator());
     //entry->set_bestnexthop(it->second.GetLearnedFrom());
     //entry->set_sec_cost(it->second.GetSecondBestCost());
@@ -885,7 +885,7 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
 
       if (std::find(nextHops.begin(), nextHops.end(), routerPrefix_Uri) != nextHops.end()){
           NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
-          //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
+          //*std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
           NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
 
           continue;
