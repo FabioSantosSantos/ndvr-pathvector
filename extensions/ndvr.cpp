@@ -48,6 +48,29 @@ void update_curtime() {
 namespace ndn {
 namespace ndvr {
 
+void Ndvr::printRoutingTable(){
+  NS_LOG_INFO("Printing RoutingTable...")
+  int i = 1;
+  for (auto it : m_routingTable) {
+      std::string prefix = it.first;
+      std::string nextHops = "";
+      RoutingEntry e = it.second;
+      
+      for (std::string nextHop: e.GetNextHops2().GetRouterIds()){
+        nextHops+="," + nextHop;
+      }
+
+      NS_LOG_INFO("Entry:" << i++ 
+                  << " Prefix: " << prefix 
+                  << " SeqNum: " << e.GetSeqNum() 
+                  << " Best Cost: " << e.GetBestCost()
+                  << " Originator: " << e.GetOriginator()
+                  << " Cost: " << e.GetCost()
+                  << " Next Hops: [" << nextHops << "]");
+  }
+
+}
+
 Ndvr::Ndvr(const ndn::security::SigningInfo& signingInfo, Name network, Name routerName, std::vector<std::string>& npv, std::vector<std::string>& faces, std::vector<std::string>& monitorFaces, std::string validationConfig)
   : m_signingInfo(signingInfo)
   , m_scheduler(m_face.getIoService())
@@ -794,6 +817,9 @@ void Ndvr::UpdateRoutingTableDigest() {
 }
 
 void Ndvr::EncodeDvInfo(std::string& out) {
+  
+  printRoutingTable();
+
   proto::DvInfo dvinfo_proto;
   std::string routerPrefix_Uri = m_routerPrefix.toUri();
   

@@ -112,6 +112,7 @@ public:
   void Start();
   void Stop();
   void AdvNamePrefix(std::string name);
+  void printRoutingTable();
 
   const ndn::Name&
   getRouterPrefix() const
