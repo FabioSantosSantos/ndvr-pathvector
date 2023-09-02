@@ -866,7 +866,7 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
     NS_LOG_INFO("===>> prefix=" << neigh_prefix << " seqNum=" << neigh_seq << " recvCost=" << neigh_cost << " learnedFrom=" << entry.second.GetLearnedFrom());
 
     
-    for (std::string nextHop: entry.second.GetNextHops2().GetRouterIds()){
+    /*for (std::string nextHop: entry.second.GetNextHops2().GetRouterIds()){
       if (nextHop.compare(routerPrefix_Uri) == 0){
         NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
         //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
@@ -880,8 +880,15 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
 
        entry.second.GetNextHops2().AddRouterId(routerPrefix_Uri);
 
-    }
+    }*/
+      std::vector<std::string> nextHops = entry.second.GetNextHops2().GetRouterIds();
+      NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
+      //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
+      NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
+      if (std::find(nextHops.begin(), nextHops.end(), routerPrefix_Uri) != nextHops.end()){
 
+          continue;
+      }
     /* Sanity checks: 1) ignore invalid seqNum; 2) ignore invalid Cost */
     if (neigh_seq <= 0 || !isValidCost(neigh_cost))
       continue;
