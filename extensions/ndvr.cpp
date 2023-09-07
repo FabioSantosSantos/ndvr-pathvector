@@ -63,9 +63,9 @@ void Ndvr::printRoutingTable(){
       NS_LOG_INFO("Entry:" << i++ 
                   << " Prefix: " << prefix 
                   << " SeqNum: " << e.GetSeqNum() 
-                  << " Best Cost: " << e.GetBestCost()
+                  //<< " Best Cost: " << e.GetBestCost()
                   << " Originator: " << e.GetOriginator()
-                  << " Cost: " << e.GetCost()
+                  //<< " Cost: " << e.GetCost()
                   << " Next Hops: [" << nextHops << "]");
   }
 
@@ -871,25 +871,28 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
         NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
         //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
         NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
-        continue;
+        neigh_cost=100;
+        has_changed=true;
       }
 
-      if (!isValidCost(neigh_cost)){
-        continue;
-       }
+      //if (!isValidCost(neigh_cost)){
+        //continue;
+       //}
 
        entry.second.GetNextHops2().AddRouterId(routerPrefix_Uri);
 
     }*/
-      std::vector<std::string> nextHops = entry.second.GetNextHops2().GetRouterIds();
+    std::vector<std::string> nextHops = entry.second.GetNextHops2().GetRouterIds();
 
-      if (std::find(nextHops.begin(), nextHops.end(), routerPrefix_Uri) != nextHops.end()){
-          NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
-          //*std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
-          NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
-
-          continue;
-      }
+    if (std::find(nextHops.begin(), nextHops.end(), routerPrefix_Uri) != nextHops.end()){
+      NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
+        //*std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
+      NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
+      neigh_cost=100;
+      entry.second.GetNextHops2().GetRouterIds().clear();
+      has_changed=true;
+      //SendHelloInterest();
+    }
     /* Sanity checks: 1) ignore invalid seqNum; 2) ignore invalid Cost */
     if (neigh_seq <= 0 || !isValidCost(neigh_cost))
       continue;
@@ -910,23 +913,23 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
     }
 
     /* Direct routes with higher sequence number means we should update ours */
-    // if (localRE->isDirectRoute()) {
-    //   if (localRE->GetOriginator() == m_routerPrefix && neigh_seq > localRE->GetSeqNum()) {
-    //     localRE->IncSeqNum(2);
-    //     has_changed = true;
-    //   }
-    //   continue;
-    // }
+     if (localRE->isDirectRoute()) {
+       if (localRE->GetOriginator() == m_routerPrefix && neigh_seq > localRE->GetSeqNum()) {
+         localRE->IncSeqNum(2);
+         has_changed = true;
+       }
+       continue;
+     }
 
     /* insert new next hop unless it was learned only from us */
     if (!localRE->isNextHop(neighbor.GetFaceId())) {
       if (isInfinityCost(neigh_cost))
         continue;
-      // if (entry.second.GetLearnedFrom() == m_routerPrefix) {
-      //   if (isInfinityCost(neigh_sec_cost))
-      //      continue;
-      //   neigh_cost = neigh_sec_cost;
-      // }
+       if (entry.second.GetLearnedFrom() == m_routerPrefix) {
+         if (isInfinityCost(neigh_cost))
+            continue;
+         //neigh_cost = neigh_sec_cost;
+       }
 
       NS_LOG_INFO("======>> New neighbor! Just insert it " << neigh_prefix << " via " << neighbor.GetFaceId());
 
@@ -952,8 +955,8 @@ Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) 
 
       // Now that we removed a NextHop, we eventually need to update the
       // learnedFrom attribute to avoid local loops
-      //if (localRE->GetNextHopsSize() == 1)
-      //localRE->SetLearnedFrom(localRE->GetNextHopName(localRE->GetBestFaceId()));
+      if (localRE->GetNextHopsSize() == 1)
+        localRE->SetLearnedFrom(localRE->GetNextHopName(localRE->GetBestFaceId()));
 
       has_changed = true;
       continue;

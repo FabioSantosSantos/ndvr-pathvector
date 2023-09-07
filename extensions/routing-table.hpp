@@ -119,11 +119,12 @@
 
         void UpsertNextHop(uint64_t faceId, uint32_t cost, std::string neighName) {
           std::cerr << "====> begin UpsertNextHop faceid=" << faceId << std::endl;
+          //m_nextHops[faceId] = std::make_tuple(cost, neighName);
           m_nextHops[faceId] = std::make_tuple(cost, neighName);
-          UpdateBestCost();
+          //UpdateBestCost();
           //if (m_bestFaceId == 0 || cost < m_bestCost) {
           //  m_bestFaceId = faceId;
-          //  m_bestCost = cost;
+          // * m_bestCost = cost;
           //}
         }
 

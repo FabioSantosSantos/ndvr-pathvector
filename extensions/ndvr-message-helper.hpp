@@ -72,8 +72,8 @@ inline RoutingTable DecodeDvInfo(const proto::DvInfo& dvinfo_proto) {
 
     dvinfo.emplace(prefix, re);
   }
-  return dvinfo;a nfdc fib
-  
+  return dvinfo;
+
 }
 
 inline RoutingTable DecodeDvInfo(const void* buf, size_t buf_size) {
