@@ -54,19 +54,24 @@ void Ndvr::printRoutingTable(){
   for (auto it : m_routingTable) {
       std::string prefix = it.first;
       std::string nextHops = "";
-      RoutingEntry e = it.second;
-      
-      for (std::string nextHop: e.GetNextHops2().GetRouterIds()){
-        nextHops+="," + nextHop;
+      RoutingEntry e = it.second;   
+
+      for (NextHop nextHop: e.GetNextHops2()){
+        std::string nexthop_id = nextHop.nexthop_id();
+        nextHops = " Next Hops of " << nexthop_id << ": [";
+        for (std::string path_nexthop: nextHop.GetPathNexthop()){
+          nextHops +="," + path_nexthop;
+        }
+
+        nextHops+= "]\n";
+
       }
 
       NS_LOG_INFO("Entry:" << i++ 
-                  << " Prefix: " << prefix 
-                  << " SeqNum: " << e.GetSeqNum() 
-                  //<< " Best Cost: " << e.GetBestCost()
-                  << " Originator: " << e.GetOriginator()
-                  //<< " Cost: " << e.GetCost()
-                  << " Next Hops: [" << nextHops << "]");
+            << " Prefix: " << prefix 
+            << " SeqNum: " << e.GetSeqNum() 
+            << " Originator: " << e.GetOriginator()
+            << nextHops);
   }
 
 }
@@ -828,30 +833,25 @@ void Ndvr::EncodeDvInfo(std::string& out) {
     auto* entry = dvinfo_proto.add_entry();
     entry->set_prefix(it->first);
     entry->set_seq(it->second.GetSeqNum());
-    //entry->set_cost(it->second.GetBestCost());
     entry->set_originator(it->second.GetOriginator());
-    //entry->set_bestnexthop(it->second.GetLearnedFrom());
-    //entry->set_sec_cost(it->second.GetSecondBestCost());
+   
 
-    NextHop nextHop = it->second.GetNextHops2();
-    proto::DvInfo_NextHop *next_hop = new proto::DvInfo_NextHop();
-    //next_hop->set_cost(it->second.GetCost());
+    for (NextHop nextHop: it->second.GetNextHops2()) {
+      proto::DvInfo_NextHop *nextHopProto = entry->add_nexthop();
+      nextHopProto->set_nexthop_id(nextHop.GetNexthopId());
 
-    for (std::string router_id: nextHop.GetRouterIds()) {
-      next_hop->add_router_id(router_id);
+      for (std::string path_nexthop: nextHop.GetPathNexthop()){
+        nextHopProto->add_path_nexthop(path_nexthop);
+      }
+
     }
-
-    next_hop->add_router_id(routerPrefix_Uri);
-
-    entry->set_allocated_next_hops(next_hop);
 
   }
   dvinfo_proto.AppendToString(&out);
   NS_LOG_INFO("String DVInfo" << out);
 }
 
-void
-Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) {
+void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& otherRT) {
   NS_LOG_INFO("Process DvInfo from neighbor=" << neighbor.GetName());
   
   bool has_changed = false;
