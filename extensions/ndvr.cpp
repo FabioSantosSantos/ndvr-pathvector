@@ -57,8 +57,8 @@ void Ndvr::printRoutingTable(){
       RoutingEntry e = it.second;   
 
       for (NextHop nextHop: e.GetNextHops2()){
-        std::string nexthop_id = nextHop.nexthop_id();
-        nextHops = " Next Hops of " << nexthop_id << ": [";
+        std::string nexthop_id = nextHop.GetNexthopId();
+        nextHops = " Next Hops of " + nexthop_id + ": [";
         for (std::string path_nexthop: nextHop.GetPathNexthop()){
           nextHops +="," + path_nexthop;
         }
@@ -860,39 +860,19 @@ void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& othe
   for (auto entry : otherRT) {
     std::string neigh_prefix = entry.first;
     uint64_t neigh_seq = entry.second.GetSeqNum();
-    uint32_t neigh_cost = entry.second.GetNextHops2().GetRouterIds().size();
+    uint32_t neigh_cost = 100;
     //NS_LOG_INFO("DEBUG DE SOCORRO Custo da entrada em processDvInfoFromNeighbor " << neigh_cost);
     
     NS_LOG_INFO("===>> prefix=" << neigh_prefix << " seqNum=" << neigh_seq << " recvCost=" << neigh_cost << " learnedFrom=" << entry.second.GetLearnedFrom());
 
     
-    /*for (std::string nextHop: entry.second.GetNextHops2().GetRouterIds()){
-      if (nextHop.compare(routerPrefix_Uri) == 0){
-        NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
-        //std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
-        NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
-        neigh_cost=100;
-        has_changed=true;
-      }
-
-      //if (!isValidCost(neigh_cost)){
-        //continue;
-       //}
-
-       entry.second.GetNextHops2().AddRouterId(routerPrefix_Uri);
-
-    }*/
-    std::vector<std::string> nextHops = entry.second.GetNextHops2().GetRouterIds();
-
-    if (std::find(nextHops.begin(), nextHops.end(), routerPrefix_Uri) != nextHops.end()){
-      NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
-        //*std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
-      NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
-      neigh_cost=100;
-      entry.second.GetNextHops2().GetRouterIds().clear();
-      has_changed=true;
-      //SendHelloInterest();
-    }
+    // if (entry.second.containsPrefix(routerPrefix_Uri)){
+    //   NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
+    //     //*std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
+    //   NS_LOG_DEBUG("===>> prefix     : " << routerPrefix_Uri)
+    //   neigh_cost=100;
+    //   //SendHelloInterest();
+    // }
     /* Sanity checks: 1) ignore invalid seqNum; 2) ignore invalid Cost */
     if (neigh_seq <= 0 || !isValidCost(neigh_cost))
       continue;

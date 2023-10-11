@@ -143,6 +143,16 @@
           return m_seqNum;
         }
 
+        bool containsPrefix(std::string prefix){
+          for(NextHop nextHop: GetNextHops2()){
+            if (nextHop.ContainsNextHop(prefix)){
+              return true;
+            }
+          }
+
+          return false;
+        }
+
         void UpsertNextHop(uint64_t faceId, uint32_t cost, std::string neighName) {
           std::cerr << "====> begin UpsertNextHop faceid=" << faceId << std::endl;
           //m_nextHops[faceId] = std::make_tuple(cost, neighName);
