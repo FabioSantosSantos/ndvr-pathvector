@@ -61,9 +61,10 @@ inline RoutingTable DecodeDvInfo(const proto::DvInfo& dvinfo_proto) {
       proto::DvInfo_NextHop nextHopProto = entry.nexthop(j);
       std::vector<std::string> ids;
       
-      for (int i = 0; i < nextHopProto.path_nexthop_size(); ++i) {
-        ids.push_back(nextHopProto.path_nexthop(i));
+      for (int k = 0; k < nextHopProto.path_nexthop_size(); ++k) {
+        ids.push_back(nextHopProto.path_nexthop(k));
       }
+      
       std::cout << "###### DecodeDvInfo next hops = " << join(ids, ",") << std::endl;
 
       nextHops.push_back(NextHop(nextHopProto.nexthop_id(), ids));
