@@ -48,12 +48,18 @@ std::string join(const T& v, const std::string& delim) {
 inline RoutingTable DecodeDvInfo(const proto::DvInfo& dvinfo_proto) {
   RoutingTable dvinfo;
 
+  std::cout << "###### DecodeDvInfo call"  << std::endl;
+
   for (int i = 0; i < dvinfo_proto.entry_size(); ++i) {
     
     const auto& entry = dvinfo_proto.entry(i);
     auto prefix = entry.prefix();
     auto seq = entry.seq();
     auto originator = entry.originator();
+
+    std::cout << "###### DecodeDvInfo Prefix" << prefix << std::endl;
+    std::cout << "###### DecodeDvInfo seq" << seq << std::endl;
+    std::cout << "###### DecodeDvInfo originator" << originator << std::endl;
     
     std::vector<NextHop> nextHops;
     
@@ -65,7 +71,9 @@ inline RoutingTable DecodeDvInfo(const proto::DvInfo& dvinfo_proto) {
         ids.push_back(nextHopProto.path_nexthop(k));
       }
       
+      std::cout << "###### DecodeDvInfo nexthop_id = " << nextHopProto.nexthop_id() << std::endl;
       std::cout << "###### DecodeDvInfo next hops = " << join(ids, ",") << std::endl;
+      std::cout << "###### DecodeDvInfo next hops cost = " << ids.size() << std::endl;
 
       nextHops.push_back(NextHop(nextHopProto.nexthop_id(), ids));
     }

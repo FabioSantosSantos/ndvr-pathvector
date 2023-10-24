@@ -73,7 +73,6 @@ void Ndvr::printRoutingTable(){
             << " Originator: " << e.GetOriginator()
             << nextHops);
   }
-
 }
 
 Ndvr::Ndvr(const ndn::security::SigningInfo& signingInfo, Name network, Name routerName, std::vector<std::string>& npv, std::vector<std::string>& faces, std::vector<std::string>& monitorFaces, std::string validationConfig)
@@ -864,7 +863,8 @@ void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& othe
     
 
     for(NextHop nextHop: entry.second.GetNextHops2()){
-      std::string neigh_prefix = nextHop.GetNexthopId();
+      
+      std::string nexthop_id = nextHop.GetNexthopId();
       uint32_t neigh_cost = nextHop.Cost();
 
       NS_LOG_INFO("===>> prefix=" << neigh_prefix << " seqNum=" << neigh_seq << " recvCost=" << neigh_cost << " learnedFrom=" << entry.second.GetLearnedFrom());
@@ -882,6 +882,7 @@ void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& othe
         continue;
 
       /* insert new prefix */
+      /* TODO: Avaliar se ainda é necesssário manter a lógica abaixo: */
       auto localRE = m_routingTable.LookupRoute(neigh_prefix);
       if (localRE == nullptr) {
         if (isInfinityCost(neigh_cost))
