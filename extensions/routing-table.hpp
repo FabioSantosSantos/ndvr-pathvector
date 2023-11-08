@@ -13,26 +13,52 @@
           {
           }
 
-          NextHop(std::vector<std::string> router_ids)
-          :m_router_ids(router_ids)
+          NextHop(std::string nexthop_id, std::vector<std::string> path_nexthop)
+          :m_path_nexthop(path_nexthop), m_nexthop_id(nexthop_id)
           {
-            }
 
-          void SetRouterIds(std::vector<std::string> router_ids) {
-            m_router_ids = router_ids;
           }
 
-          std::vector<std::string> GetRouterIds() const {
-            return m_router_ids;
+          NextHop(std::string nexthop_id)
+          :m_nexthop_id(nexthop_id)
+          {
+            
           }
 
-          void AddRouterId(std::string router_id) {
-            m_router_ids.push_back(router_id);
+          void SetPathNexthop(std::vector<std::string> path_nexthop) {
+            m_path_nexthop = path_nexthop;
           }
+
+          std::vector<std::string> GetPathNexthop() const {
+            return m_path_nexthop;
+          }
+
+         void AddNexthop(std::string nexthop) {
+            m_path_nexthop.push_back(nexthop);
+         }
+
+         std::string GetNexthopId(){
+            return m_nexthop_id;
+         }
+
+         void SetNexhopId(std::string nexthop_id){
+            m_nexthop_id = nexthop_id;
+         }
+
+         bool ContainsNextHop(std::string nexthop){
+            // Retorna true caso a lista path_nexthop contenha o nexthop
+            return std::find(m_path_nexthop.begin(), m_path_nexthop.end(), nexthop) != m_path_nexthop.end();
+         }
+
+         uint32_t Cost(){
+            return m_path_nexthop.size();
+         }
    
      
         private:
-          std::vector<std::string> m_router_ids;
+          std::string m_nexthop_id;
+          std::vector<std::string> m_path_nexthop;
+
      };
 
       class RoutingEntry {
@@ -50,7 +76,7 @@
         {
         }
 
-        RoutingEntry(std::string name, uint64_t seqNum, std::string originator, NextHop nextHops)
+        RoutingEntry(std::string name, uint64_t seqNum, std::string originator, std::vector<NextHop> nextHops)
           : m_name(name)
           , m_seqNum(seqNum)
           , m_originator(originator)
@@ -88,11 +114,11 @@
           return m_name;
         }
 
-        NextHop GetNextHops2() const {
+        std::vector<NextHop> GetNextHops2() const {
           return m_nextHops2;
         }
 
-        void SetNextHops2(NextHop nextHops) {
+        void SetNextHops2(std::vector<NextHop> nextHops) {
           m_nextHops2 = nextHops;
         }
 
@@ -115,6 +141,16 @@
 
         uint64_t GetSeqNum() {
           return m_seqNum;
+        }
+
+        bool containsPrefix(std::string prefix){
+          for(NextHop nextHop: GetNextHops2()){
+            if (nextHop.ContainsNextHop(prefix)){
+              return true;
+            }
+          }
+
+          return false;
         }
 
         void UpsertNextHop(uint64_t faceId, uint32_t cost, std::string neighName) {
@@ -243,7 +279,7 @@
       }
 
       private:
-        NextHop m_nextHops2;
+        std::vector<NextHop> m_nextHops2;
         std::string m_name;
         std::string m_originator;
         uint64_t m_seqNum;
