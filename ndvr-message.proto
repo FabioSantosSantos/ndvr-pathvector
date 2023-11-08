@@ -1,0 +1,25 @@
+/* -*- Mode:protobuf; indent-tabs-mode:nil; -*- */
+// More information: https://developers.google.com/protocol-buffers/docs/cpptutorial
+
+syntax = "proto3";
+
+package ndn.ndvr.proto;
+
+// Uma entidade pode ter vários next hops
+// Cada Next hop terá seu custo assiciado
+
+message DvInfo {
+  message NextHop {
+    string nexthop_id = 1;
+    repeated string path_nexthop = 2;
+  }
+
+  message Entry {
+    string prefix = 1;
+    uint64 seq = 2;
+    string originator = 3;
+    repeated NextHop nexthop = 4;
+  }
+
+  repeated Entry entry = 1;
+}
