@@ -2,6 +2,8 @@
 #define _NDVR_HELPER_HPP_
 
 #include "ndvr-message.pb.h"
+#include "ibf.hpp"
+
 
 namespace ndn {
 namespace ndvr {
@@ -17,9 +19,10 @@ inline void EncodeDvInfo(RoutingTable& v, proto::DvInfo* dvinfo_proto) {
     for (NextHop nextHop: it->second.GetNextHops2()) {
       proto::DvInfo_NextHop *nextHopProto = entry->add_nexthop();
       nextHopProto->set_nexthop_id(nextHop.GetNexthopId());
+      nextHopProto->set_count(nextHop.Cost());
 
-      for (std::string path_nexthop: nextHop.GetPathNexthop()){
-        nextHopProto->add_path_nexthop(path_nexthop);
+      for (size_t bit: nextHop.GetBitsIbf()){
+        nextHopProto->add_bits_ibf(bit);
       }
 
     }
@@ -65,17 +68,22 @@ inline RoutingTable DecodeDvInfo(const proto::DvInfo& dvinfo_proto) {
     
     for (int j = 0; j < entry.nexthop_size(); ++j) {
       proto::DvInfo_NextHop nextHopProto = entry.nexthop(j);
-      std::vector<std::string> ids;
-      
-      for (int k = 0; k < nextHopProto.path_nexthop_size(); ++k) {
-        ids.push_back(nextHopProto.path_nexthop(k));
-      }
-      
-      std::cout << "###### DecodeDvInfo nexthop_id = " << nextHopProto.nexthop_id() << std::endl;
-      std::cout << "###### DecodeDvInfo next hops = " << join(ids, ",") << std::endl;
-      std::cout << "###### DecodeDvInfo next hops cost = " << ids.size() << std::endl;
 
-      nextHops.push_back(NextHop(nextHopProto.nexthop_id(), ids));
+      std::vector<size_t> bits;
+      //NextHop(std::string nexthop_id, int count, std::vector<size_t> bits_ibf)
+
+      
+      for (int k = 0; k < nextHopProto.bits_ibf_size(); ++k) {
+        bits.push_back(nextHopProto.bits_ibf(k));
+      }
+
+      NextHop nextHop = NextHop(nextHopProto.nexthop_id(), nextHopProto.count(), bits);
+
+      std::cout << "###### DecodeDvInfo nexthop_id = " << nextHopProto.nexthop_id() << std::endl;
+      std::cout << "###### DecodeDvInfo bits = " << join(bits, ",") << std::endl;
+      std::cout << "###### DecodeDvInfo next hops cost = " << nextHop.Cost() << std::endl;
+
+      nextHops.push_back(nextHop);
     }
     
     RoutingEntry re = RoutingEntry(prefix, seq, originator, nextHops);

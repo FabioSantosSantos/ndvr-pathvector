@@ -11,7 +11,8 @@ package ndn.ndvr.proto;
 message DvInfo {
   message NextHop {
     string nexthop_id = 1;
-    repeated string path_nexthop = 2;
+    repeated uint64 bits_ibf = 2;
+    uint64 count = 3;
   }
 
   message Entry {

@@ -4,6 +4,8 @@
       #include <map>
       #include <ndn-cxx/mgmt/nfd/controller.hpp>
 
+      #include "ibf.hpp"
+
       namespace ndn {
       namespace ndvr {
 
@@ -13,29 +15,20 @@
           {
           }
 
-          NextHop(std::string nexthop_id, std::vector<std::string> path_nexthop)
-          :m_path_nexthop(path_nexthop), m_nexthop_id(nexthop_id)
+          NextHop(std::string nexthop_id, int count, std::vector<size_t> bits_ibf)
+          :m_bits_ibf(bits_ibf), m_count(count), m_nexthop_id(nexthop_id)
           {
-
+            m_ibf = new InvertibleBloomFilter(IBF_DEFAULT_SIZE, IBF_DEFAULT_QTD_HASH_FUNCTIONS, count, bits_ibf);
           }
 
-          NextHop(std::string nexthop_id)
-          :m_nexthop_id(nexthop_id)
-          {
-            
+          void SetBitsIbf(std::vector<size_t> bits_ibf) {
+            m_bits_ibf = bits_ibf;
           }
 
-          void SetPathNexthop(std::vector<std::string> path_nexthop) {
-            m_path_nexthop = path_nexthop;
+          std::vector<size_t> GetBitsIbf() const {
+            return m_bits_ibf;
           }
 
-          std::vector<std::string> GetPathNexthop() const {
-            return m_path_nexthop;
-          }
-
-         void AddNexthop(std::string nexthop) {
-            m_path_nexthop.push_back(nexthop);
-         }
 
          std::string GetNexthopId(){
             return m_nexthop_id;
@@ -47,17 +40,25 @@
 
          bool ContainsNextHop(std::string nexthop){
             // Retorna true caso a lista path_nexthop contenha o nexthop
-            return std::find(m_path_nexthop.begin(), m_path_nexthop.end(), nexthop) != m_path_nexthop.end();
+            return m_ibf->contains(nexthop);
          }
 
          uint32_t Cost(){
-            return m_path_nexthop.size();
+            return m_ibf->get_count();
+         }
+
+
+        void insert(std::string nexthop){
+            // Retorna true caso a lista path_nexthop contenha o nexthop
+            m_ibf->insert(nexthop);
          }
    
      
         private:
+          int m_count;
           std::string m_nexthop_id;
-          std::vector<std::string> m_path_nexthop;
+          std::vector<size_t> m_bits_ibf;
+          InvertibleBloomFilter *m_ibf;
 
      };
 

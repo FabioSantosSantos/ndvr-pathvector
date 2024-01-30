@@ -16,7 +16,7 @@ from minindn.minindn import Minindn
 class Ndvr(Application):
     BIN = '/usr/local/bin/ndvrd'
 
-    def __init__(self, node, logLevel='NONE', network='/ndn', interval=None):
+    def __init__(self, node, logLevel='NONE', network='/ndn', router_name = "C1.Router", interval=None):
         Application.__init__(self, node)
 
         self.network = network
@@ -36,10 +36,10 @@ class Ndvr(Application):
         if self.parameters.get('ndvr-prefixes', None) != None:
             self.prefixes = self.parameters.get('ndvr-prefixes').split(',')
         else:
-            self.prefixes.append('/ndn/{}-site'.format(node.name))
+            self.prefixes.append('/n/{}-site'.format(node.name))
 
         self.logFile = 'ndvr.log'
-        self.routerName = '/{}C1.Router/{}'.format('%', node.name)
+        self.routerName = '/%{}/{}'.format(router_name, node.name)
         self.validationConfFile = '{}/ndvr-validation.conf'.format(self.homeDir)
 
         possibleConfPaths = ['/usr/local/etc/ndn/ndvr-validation.conf', '/etc/ndn/ndvr-validation.conf']

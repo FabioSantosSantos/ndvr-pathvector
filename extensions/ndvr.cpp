@@ -59,8 +59,8 @@ void Ndvr::printRoutingTable(){
       for (NextHop nextHop: e.GetNextHops2()){
         std::string nexthop_id = nextHop.GetNexthopId();
         nextHops = " Next Hops of " + nexthop_id + ": [";
-        for (std::string path_nexthop: nextHop.GetPathNexthop()){
-          nextHops +="," + path_nexthop;
+        for (size_t bit: nextHop.GetBitsIbf()){
+          nextHops +="," +  std::to_string(bit);
         }
 
         nextHops+= "]\n";
@@ -838,9 +838,10 @@ void Ndvr::EncodeDvInfo(std::string& out) {
     for (NextHop nextHop: it->second.GetNextHops2()) {
       proto::DvInfo_NextHop *nextHopProto = entry->add_nexthop();
       nextHopProto->set_nexthop_id(nextHop.GetNexthopId());
+      nextHopProto->set_count(nextHop.Cost());
 
-      for (std::string path_nexthop: nextHop.GetPathNexthop()){
-        nextHopProto->add_path_nexthop(path_nexthop);
+      for (size_t bit: nextHop.GetBitsIbf()){
+        nextHopProto->add_bits_ibf(bit);
       }
 
     }
@@ -863,13 +864,16 @@ void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& othe
     
 
     for(NextHop nextHop: entry.second.GetNextHops2()){
-      
+
       std::string nexthop_id = nextHop.GetNexthopId();
       uint32_t neigh_cost = nextHop.Cost();
 
       NS_LOG_INFO("===>> prefix=" << neigh_prefix << " seqNum=" << neigh_seq << " recvCost=" << neigh_cost << " learnedFrom=" << entry.second.GetLearnedFrom());
 
-      
+      if (nextHop.ContainsNextHop(routerPrefix_Uri)){
+        NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
+        continue;
+      }
       // if (entry.second.containsPrefix(routerPrefix_Uri)){
       //   NS_LOG_DEBUG("===>> processDvInfoFromNeighbor => my prefix ( " << routerPrefix_Uri << " ) was found in next hops list << " << entry.second.GetName() << ".Ignoring it!");
       //     //*std::cout << "### >> prefix     :" << routerPrefix_Uri << std::endl;
@@ -892,8 +896,8 @@ void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& othe
         //entry.second.SetFaceId(neighbor.GetFaceId());
         //entry.second.SetLearnedFrom(neighbor.GetName());
         m_routingTable.UpsertNextHop(entry.second, neighbor.GetFaceId(), CalculateCostToNeigh(neighbor, neigh_cost), neighbor.GetName());
-
         has_changed = true;
+        nextHop.insert(routerPrefix_Uri);
         continue;
       }
 
@@ -923,7 +927,7 @@ void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& othe
         //localRE->SetLearnedFrom(localRE->GetNextHopName(localRE->GetBestFaceId()));
 
         m_routingTable.UpsertNextHop(*localRE, neighbor.GetFaceId(), CalculateCostToNeigh(neighbor, neigh_cost), neighbor.GetName());
-
+        nextHop.insert(routerPrefix_Uri);
         has_changed = true;
         continue;
       }
@@ -973,6 +977,7 @@ void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& othe
         NS_LOG_INFO("======>> New SeqNum, update name prefix! local_seqNum=" << localRE->GetSeqNum() << " neigh_seqNum=" << neigh_seq << " local_cost=" << localRE->GetCost(neighbor.GetFaceId()) << " neigh_cost=" << neigh_cost);
         localRE->SetSeqNum(neigh_seq);
         m_routingTable.UpsertNextHop(*localRE, neighbor.GetFaceId(), neigh_cost, neighbor.GetName());
+        nextHop.insert(routerPrefix_Uri);
         has_changed = true;
         //// TODO:
         ////   - Recv_Cost == Local_cost: update Local_SeqNum
@@ -1010,6 +1015,7 @@ void Ndvr::processDvInfoFromNeighbor(NeighborEntry& neighbor, RoutingTable& othe
         /* Cost change will be handle by periodic updates */
         // TODO: wait SettlingTime, then update Local_Cost
         m_routingTable.UpsertNextHop(*localRE, neighbor.GetFaceId(), neigh_cost, neighbor.GetName());
+        nextHop.insert(routerPrefix_Uri);
         has_changed = true;
       //} else if (neigh_seq == localRE->GetSeqNum() && neigh_cost == localRE->GetCost()) {
       //  NS_LOG_INFO("======>> Equal SeqNum and Equal Cost, local_cost=" << localRE->GetCost());

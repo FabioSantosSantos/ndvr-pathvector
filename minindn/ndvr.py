@@ -30,7 +30,7 @@ from minindn.minindn import Minindn
 from minindn.util import MiniNDNCLI
 from minindn.apps.app_manager import AppManager
 from minindn.apps.nfd import Nfd
-from minindn.apps.ndvr import Ndvr
+from apps.ndvr import Ndvr
 
 DEFAULT_TOPO = '/home/minindn/mini-ndn/examples/topo-two-nodes.conf'
 
